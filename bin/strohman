@@ -1,0 +1,29 @@
+#!/usr/bin/python -B
+import os
+import sys
+import logging
+
+## while testing
+try: import strohman
+except ImportError:
+    sys.path.append(os.getcwd())
+
+from strohman.interface import auto as interface
+
+IP = 'planeshift.subhosting.net'
+PORT = 7777
+USERNAME = 'your@mail.here'
+PASSWORD = 'password'
+
+
+def main():
+    logging.basicConfig(level=logging.DEBUG, datefmt='%m-%d %H:%M',
+        format='%(asctime)s %(name)s %(levelname)s:%(message)s')
+    logging.getLogger('strohman.net.handlers').setLevel(logging.INFO)
+    logging.getLogger('strohman.net.connection').setLevel(logging.INFO)
+
+    ps_engine = interface.Interface(IP, PORT, USERNAME, PASSWORD)
+    try: ps_engine.run()
+    except KeyboardInterrupt: ps_engine.close()
+
+if __name__ == '__main__': main()
