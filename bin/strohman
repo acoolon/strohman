@@ -10,10 +10,8 @@ except ImportError:
 
 from strohman.interface import auto as interface
 
-IP = 'planeshift.subhosting.net'
-PORT = 7777
-USERNAME = 'your@mail.here'
-PASSWORD = 'password'
+# for IP, PORT, USERNAME, PASSWORD
+from strohman.config import *
 
 
 def main():

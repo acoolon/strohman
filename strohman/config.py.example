@@ -1,0 +1,4 @@
+IP = 'planeshift.subhosting.net'
+PORT = 7777
+USERNAME = 'your@mail.here'
+PASSWORD = 'password'
