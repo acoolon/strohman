@@ -5,8 +5,8 @@ Usage
 -----
 
 1. Get it.
-2. Copy 'strohman/config.py.example' to 'strohman/config.py' and change it.
-3. Run 'bin/strohman' with python 3.x.
+2. Copy `strohman/config.py.example` to `strohman/config.py` and change it.
+3. Run `bin/strohman` with python 3.x.
 
 
 Issues
