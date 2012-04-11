@@ -182,7 +182,7 @@ class Login(BaseHandler):
 
     def handle_world(self, packet):
         if self.interface.connection.push(netpacket.ClientStatusPacket()):
-            self.logger.info('Char is at the map {}, sending client READY'.format(packet.sector))
+            self.logger.info('Sending client READY'.format(packet.sector))
             self.interface.on_login(self)
 
 
@@ -312,24 +312,32 @@ class Command(BaseHandler):
             LOGGER.info('Sent user command: {}'.format(cmd))
 
 
-
 class Actors(BaseHandler):
     def __init__(self, interface):
         super().__init__(interface)
+        self.register(netpacket.PersistWorldPacket, self.handle_world, 1)
         self.register(netpacket.PersistActorPacket, self.handle_actor)
         self.register(netpacket.DeadReckoningPacket, self.handle_dr)
+        self.register(netpacket.MovelockPacket, self.handle_movlock)
         self.register(netpacket.RemoveObjectPacket, self.handle_rmobj)
         self.register(netpacket.StatDRUpdatePacket, self.handle_statdr)
+        self.interface.connection.push(netpacket.PersistWorldRequestPacket())
         self.interface.connection.push(netpacket.PersistActorRequestPacket())
         self.actors = dict()
-        self.my_id = None
+        self.sector = ''
+        self.locked = False
+        self.id = None
 
-    def get_my_name(self):
-        if not self.my_id is None:
-            return self.actors[self.my_id]['name']
+    def handle_world(self, packet):
+        # This is a little hacky. We requested the PersistWorld in the Login
+        # handler already (Because client-ready can only be sent after this
+        # request). But we need to know our sector.. and it would be ugly to
+        # pass the sector information through method calls.
+        self.logger.info('Char is at the sector {}'.format(packet.sector))
+        self.sector = packet.sector
 
     def handle_actor(self, packet):
-        if packet.counter == 0: self.my_id = packet.entity_id
+        if packet.counter == 0: self.id = packet.entity_id
         self.actors[packet.entity_id] = {'pos': packet.pos, 'drcounter':
                                          packet.counter, 'name': packet.name}
         self.interface.on_actor_new(self, packet.entity_id)
@@ -343,6 +351,11 @@ class Actors(BaseHandler):
             actor['pos'] = packet.pos
             actor['drcounter'] = packet.counter
             self.interface.on_actor_moved(self, packet.entity_id)
+
+    def handle_movlock(self, packet):
+        if packet.locked: self.logger.info('Char now locked')
+        else: self.logger.info('Char not longer locked')
+        self.locked = bool(packet.locked)
 
     def handle_rmobj(self, packet):
         if packet.entity_id in self.actors:
@@ -360,3 +373,36 @@ class Actors(BaseHandler):
         else:
             actor = self.actors[packet.entity_id]
             self.logger.info('StatDR for: {}'.format(actor['name']))
+
+    def get_me(self):
+        if not self.id is None: return self.actors[self.id]
+        else: return dict()
+
+    def move(self, rotation, move):
+        if not (self.locked or self.id is None):
+            me = self.get_me()
+            mov = netpacket.DeadReckoningPacket(entity_id = self.id,
+                                                flags = 16, vel = move,
+                                                ang_vel = rotation,
+                                                counter = me['counter'],
+                                                pos = me['pos'],
+                                                y_rot = me['rot'],
+                                                sector = self.sector)
+            self.me['counter'] += 1
+            self.interface.connection.push(mov)
+
+        # 'in case of'
+        #self.register(netpacket.PersistWorldPacket, self.handle_world)
+        #self.register(netpacket.MoveinfoPacket, self.handle_movinfo)
+#        prod = lambda x, y: x * y
+#        diff = lambda x, y: x - y
+#        (moves_move, moves_rot) = self.moves.get(move, ((0, 0, 0), (0, 0, 0)))
+#        (modes_move, modes_rot) = self.modes.get(mode, ((0, 0, 0), (0, 0, 0)))
+#        move = [prod(x, y) for (x, y) in zip(moves_move, modes_move)]
+#        rotate = [prod(x, y) for (x, y) in zip(moves_rot, modes_rot)][0] # XXX
+#        mov = netpacket.DeadReckoningPacket(
+#            entity_id = self.me['id'],  counter = self.me['counter'],
+#            flags = 16,                 ang_vel = rotate,
+#            vel = move,                 pos = self.me['pos'],
+#            y_rot = self.me['rot'],     sector = self.me['sector'],)
+#        self.me['pos'] = [diff(x, y) for (x, y) in zip(self.me['pos'], move)]
