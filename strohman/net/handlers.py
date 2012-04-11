@@ -191,15 +191,18 @@ class Weather(BaseHandler):
         super().__init__(interface)
         self.register(netpacket.WeatherPacket, self.handle_weather)
         self.last_date = {'minute': 0, 'hour': 0, 'day': 0, 'month': 0, 'year': 0}
+        self.weather_map = dict()
 
     def handle_weather(self, packet):
+        self.logger.info(str(packet))
         if packet.date:
             self.last_date = packet.date
-            self.logger.info('Time update: {}'.format(packet))
-            self.interface.on_weather_timeup(self)
-        else:
-            self.logger.info(str(packet))
-            self.interface.on_weather_weatherup(self)
+            self.interface.on_weather_timeup(self, self.last_date)
+        elif packet.sector:
+            self.weather_map[packet.sector] = (packet.downfall, packet.fog)
+            self.interface.on_weather_weatherup(self,
+                                                packet.sector,
+                                                self.weather_map[packet.sector])
 
 
 class Chat(BaseHandler):

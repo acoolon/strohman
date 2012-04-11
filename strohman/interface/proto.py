@@ -65,8 +65,8 @@ class Interface:
     def on_actor_moved(self, handler, entity_id): pass
 
     ## weather events
-    def on_weather_timeup(self, hander): pass
-    def on_weather_weatherup(self, hander): pass
+    def on_weather_timeup(self, hander, last_date): pass
+    def on_weather_weatherup(self, hander, sector, wether): pass
 
 ######################
 
