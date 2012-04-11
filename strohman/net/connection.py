@@ -132,14 +132,14 @@ class Asynsocket(asynsocket.dispatcher):
 
         elif error.errno in (errno.EINVAL, # unable to send
                             ):
-            pass #XXX resend packet
+            pass # XXX resend packet
 
     def handle_read(self):
         try: data = self.recv(MAX_PACKET_SIZE)
         except IOError as e: self.handle_connection_error(e)
         else:
             packet = netpacket.BasePacket(data)
-            if packet.needs_ack: self.push(packet.ack())
+            if packet.needs_ack: self.push(packet.ack()) # XXX heartbeat
             if packet.is_part: self.handle_part(packet)
             elif packet.is_multi: self.handle_multi(data)
             else:
