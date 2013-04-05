@@ -1,0 +1,18 @@
+import sys
+
+try: import strohman
+except ImportError:
+    sys.path.append(os.getcwd())
+
+from strohman import config
+from strohman.net import sniffer
+
+
+def main():
+    sniffer = SocketSniffer(config.IP, config.PORT, 'localhost', 7776)
+#    sniffer = PcabpSniffer(config.IP, config.PORT)
+
+    try: sniffer.run()
+    finally: sniffer.close()
+
+if __name__ == '__main__': main()
