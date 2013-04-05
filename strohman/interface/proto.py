@@ -87,7 +87,7 @@ class Interface:
     def do_login(self, char_name):
         handlers.Login(self, char_name)
 
-    def do_setup_env(self):
+    def do_setup_env(self, sector):
         self.weather_handler = handlers.Weather(self)
         self.chat_handler = handlers.Chat(self)
         self.command_handler = handlers.Command(self)
