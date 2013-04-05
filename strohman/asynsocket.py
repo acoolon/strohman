@@ -80,11 +80,11 @@ class asynschedcore(sched.scheduler):
         if now < finish:
             time.sleep(finish - now)
 
-    def enterabs(self, abstime, priority, action, argument):
+    def enterabs(self, time, priority, action, argument=[], kwargs={}):
         # We might insert an event before the currently next event.
         self._abort_delay = True
-        return sched.scheduler.enterabs(self, abstime, priority, action,
-                                        argument)
+        return sched.scheduler.enterabs(self, time, priority, action,
+                                        argument, kwargs)
 
     # Overwriting enter is not necessary,
     # because it is implemented using enter.
